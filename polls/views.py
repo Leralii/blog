@@ -1,7 +1,7 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.shortcuts import render
 
-from polls.models import Question
+from polls.models import Question, Choice
 
 
 def index(request):
@@ -10,22 +10,23 @@ def index(request):
     return render(request, 'polls/index.html', context)
 
 
-def first_view(request, to_print="default"):
-    return HttpResponse(f"Hello {to_print}")
-
 def detail(request, question_id):
-    # TODO получить вопрос по question_id
-    # TODO получить все варианты ответа по вопросу
-    # TODO добавить в контекст вопрос и варианты ответа
-    # TODO сделать шаблон
-    # TODO в шаблоне в заголовок написать название вопроса
-    # TODO в список написать варианты ответов
+    try:
+        question = Question.objects.get(pk=question_id)
+    except Question.DoesNotExist:
+        raise Http404("Question does not exist")
+    choices = question.choices.all()
+    context = {
+        "question": question,
+        "choices": choices
+    }
+    return render(request, "polls/detail.html", context)
 
-    return HttpResponse("You're looking at question %s." % question_id)
 
 def results(request, question_id):
     response = "You're looking at the results of question %s."
     return HttpResponse(response % question_id)
+
 
 def vote(request, question_id):
     return HttpResponse("You're voting on question %s." % question_id)
